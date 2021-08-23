@@ -10,10 +10,11 @@ from pprint import pprint
 from colorama import Fore, Back, Style
 import argparse
 
+# test ID: [tv, movie, imdbID]
+testID = ['113036', '676691', 'tt6856396']
 
 # CONSTANTS:
 CWD = Path('./')
-API_KEY = ''
 
 # COMMAND FLAGS
 FLAG_KEY = 'key'
@@ -101,8 +102,8 @@ class TMDB:
 						}
 		return returnDict
 
-	'''
-	# Get Movie Details, TODO: allow multiple arguments and return all output.
+
+	# Get TV Details, TODO: allow multiple arguments and return all output.
 	def TV(TMDB_ID, j=False):
 		url = f'https://api.themoviedb.org/3/tv/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
@@ -112,28 +113,31 @@ class TMDB:
 		if j == True:
 			return response.text
 
-		# Create Dictionary of Movie Data:
+		# Create Dictionary of TV Data:
 		tvDict = json.loads(response.text)
+		print(tvDict.keys())
 
 		# 	Genre Data:
 		genresList = []
 		for genre in tvDict["genres"]:
 			genresList.append(genre["name"])
 
-		title = tvDict['title']
+		# TODO: add all languages rather than the primary spoken
+		title = tvDict['name']
 		description = tvDict['overview']
 		genres = ' | '.join(genresList[:])
-		release_date = tvDict['release_date']
+		release_date = {tvDict['first_air_date']}
 		languages = tvDict['spoken_languages'][0]['english_name']
 		rating = tvDict['vote_average']
-		runtime = tvDict['runtime']
+		runtime = tvDict['episode_run_time']
+		seasoncount = tvDict['number_of_seasons']
 
 		returnDict = {'title': title, 'description': description, 'genres': genres,
                     'release_date': release_date, 'languages': languages, 'rating': rating,
-                    'trailer': trailer, 'runtime': runtime
+                    'runtime': runtime, 'seasons': seasoncount
                 }
 		return returnDict
-	'''
+
 
 	# Converts an IMDB ID to a TMDB ID, TODO: automatically convert IMDB IDs to TMDB
 	def TMDBID(IMDB_ID):
@@ -169,7 +173,7 @@ if args.movie != None:
 	else:
 		movieDict = TMDB.Movie(args.movie)
 		print(f'''
-{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	[{movieDict['runtime']} mins]
+{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	[{movieDict['runtime']}]
 {GREEN}GENRES:{RS} {movieDict['genres']}
 {GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}
 {GREEN}DESCRIPTION:{RS} {movieDict['description']}''')
@@ -178,3 +182,14 @@ if args.movie != None:
 
 
 # TV OUTPUT [-tv / --television]
+if args.television != None:
+	if args.json:
+		print(TMDB.TV(args.television, j=True))
+	else:
+		tvDict = TMDB.TV(args.television)
+		print(f'''
+{GREEN}TITLE:{RS}{YELLOW} {tvDict['title']} {RS}	[{tvDict['runtime']}min episodes]
+{GREEN}GENRES:{RS} {tvDict['genres']}	{tvDict['seasons']} Seasons
+{GREEN}RATING:{RS} {tvDict['rating']}/10 		{GREEN}RELEASED:{RS} {tvDict['release_date']}
+{GREEN}DESCRIPTION:{RS} {tvDict['description']}
+''')
