@@ -41,7 +41,7 @@ group.add_argument(
 group.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=int, metavar='TMDB_ID')
 parser.add_argument(
-	"-id", "--imdbid", help="converts IMDB ID to TMDB IDs", metavar='IMDB_ID')
+	"-imdb", "--imdbid", help="converts IMDB ID to TMDB IDs", metavar='IMDB_ID')
 
 args = parser.parse_args()
 
@@ -61,7 +61,7 @@ class TMDB:
 		initFile.close()
 
 	# Get Movie Details, TODO: allow multiple arguments and return all output.
-	def Movie(TMDB_ID, j=False):
+	def Movie(TMDB_ID, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/movie/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
@@ -102,9 +102,8 @@ class TMDB:
 						}
 		return returnDict
 
-
-	# Get TV Details, TODO: allow multiple arguments and return all output.
-	def TV(TMDB_ID, j=False):
+	# Returns a python dict of TV details, TODO: allow multiple arguments and return all output.
+	def TV(TMDB_ID, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/tv/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
@@ -138,9 +137,8 @@ class TMDB:
                 }
 		return returnDict
 
-
 	# Converts an IMDB ID to a TMDB ID, TODO: automatically convert IMDB IDs to TMDB
-	def TMDBID(IMDB_ID):
+	def IMDB_CONVERTER(IMDB_ID):
 		url = f'https://api.themoviedb.org/3/find/{IMDB_ID}?api_key={API_KEY}&language=en-US&external_source=imdb_id'
 		response = requests.get(url)
 		response.raise_for_status()
@@ -173,10 +171,11 @@ if args.movie != None:
 	else:
 		movieDict = TMDB.Movie(args.movie)
 		print(f'''
-{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	[{movieDict['runtime']}]
+{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins
 {GREEN}GENRES:{RS} {movieDict['genres']}
 {GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}
-{GREEN}DESCRIPTION:{RS} {movieDict['description']}''')
+{GREEN}DESCRIPTION:{RS} {movieDict['description']}
+''')
 		# appends link to trailer if available.
 		if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
 
@@ -188,8 +187,14 @@ if args.television != None:
 	else:
 		tvDict = TMDB.TV(args.television)
 		print(f'''
-{GREEN}TITLE:{RS}{YELLOW} {tvDict['title']} {RS}	[{tvDict['runtime']}min episodes]
-{GREEN}GENRES:{RS} {tvDict['genres']}	{tvDict['seasons']} Seasons
-{GREEN}RATING:{RS} {tvDict['rating']}/10 		{GREEN}RELEASED:{RS} {tvDict['release_date']}
+{GREEN}TITLE:{RS}{YELLOW} {tvDict['title']} {RS}
+{GREEN}GENRES:{RS} {tvDict['genres']}	
+{GREEN}EPISODE LENGTH:{RS} {tvDict['runtime']}mins	{GREEN}SEASONS:{RS} {tvDict['seasons']}
+{GREEN}RATING:{RS} {tvDict['rating']}/10 		{GREEN}RELEASED:{RS} {str(tvDict['release_date'])[2:-2]}
 {GREEN}DESCRIPTION:{RS} {tvDict['description']}
 ''')
+
+
+if args.imdbid != None:
+	tmdbID = TMDB.IMDB_CONVERTER(args.imdbid)
+	print(tmdbID)
