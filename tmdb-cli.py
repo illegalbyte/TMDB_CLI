@@ -1,8 +1,6 @@
 #! python3
 
-import sys
 from pathlib import Path
-import os
 import json
 import requests
 import pyinputplus as pyip
@@ -53,7 +51,7 @@ class TMDB:
 		while True:
 			apiKeyInput = pyip.inputStr("Enter your API key from themoviedb.org:\n", )
 			if (requests.get(f'https://api.themoviedb.org/3/movie/{100}?api_key={apiKeyInput}&language=en-US').status_code == requests.codes.ok):
-				print('Awesome, your key worked and has been saved. Run \'tmdb help\' if you need help getting started.')
+				print('Awesome, your key worked and has been saved. Run \'tmdb -h\' if you need help getting started.')
 				break
 		# Write the API key to 'init' file
 		initFile = open('init.py', 'w')
@@ -138,7 +136,7 @@ class TMDB:
 		return returnDict
 
 	# Converts an IMDB ID to a TMDB ID, TODO: automatically convert IMDB IDs to TMDB
-	def IMDB_CONVERTER(IMDB_ID):
+	def IMDB_CONVERTER(IMDB_ID) -> str:
 		url = f'https://api.themoviedb.org/3/find/{IMDB_ID}?api_key={API_KEY}&language=en-US&external_source=imdb_id'
 		response = requests.get(url)
 		response.raise_for_status()
@@ -149,10 +147,6 @@ class TMDB:
 			return findResponseDictionary['movie_results'][0]["id"]
 		elif findResponseDictionary['tv_results'] != []:
 			return findResponseDictionary['tv_results'][0]["id"]
-
-
-
-
 
 
 
@@ -194,7 +188,7 @@ if args.television != None:
 {GREEN}DESCRIPTION:{RS} {tvDict['description']}
 ''')
 
-
+# CONVERTS IMDB ID TO TMDB ID [-imdb / --imdb-id]
 if args.imdbid != None:
 	tmdbID = TMDB.IMDB_CONVERTER(args.imdbid)
 	print(tmdbID)
