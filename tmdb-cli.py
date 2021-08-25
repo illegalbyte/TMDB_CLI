@@ -145,6 +145,13 @@ class TMDB:
 		elif findResponseDictionary['tv_results'] != []:
 			return findResponseDictionary['tv_results'][0]["id"]
 
+	# TODO: Add search for movies / TV shows in an interactive menu using pyinputplus menus
+
+	# TODO: Add justwatch providers search: https://developers.themoviedb.org/3/watch-providers/get-available-regions
+		# localised to region 
+			# eg translate country name to country code 
+
+	# TODO: Add determine type (Movie or Tv show) function
 
 
 # Initialise API KEY:
