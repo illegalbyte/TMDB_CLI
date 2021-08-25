@@ -14,12 +14,8 @@ testID = ['113036', '676691', 'tt6856396']
 # CONSTANTS:
 CWD = Path('./')
 
-# COMMAND FLAGS
-FLAG_KEY = 'key'
-FLAG_MOVIE = '-m'
-FLAG_TV = '-tv'
 
-# COLORS FOR TERM OUTPUT STYLING
+# COLOR SHORTCUTS FOR TERM OUTPUT STYLING EG f"{GREEN} THIS IS GREEN {RS} THIS IS NOT GREEN"
 RS = Style.RESET_ALL
 RED = Fore.RED
 YELLOW = Fore.YELLOW
@@ -35,11 +31,13 @@ parser.add_argument(
 parser.add_argument(
 	"-k", "--key", help="add new API key for authorisation", action="store_true")
 group.add_argument(
-	"-m", "--movie", help="search for movie using themoviedb.org ID", type=int, metavar='TMDB_ID')
+	"-m", "--movie", help="search for movie using themoviedb.org ID", type=str, metavar='TMDB_ID')
 group.add_argument(
-    "-tv", "--television", help="search for TV show using themoviedb.org ID", type=int, metavar='TMDB_ID')
+    "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
 parser.add_argument(
-	"-imdb", "--imdbid", help="converts IMDB ID to TMDB IDs", metavar='IMDB_ID')
+	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
+group.add_argument(
+	"-idconvert", "--imdbidconvert", help="returns a TMDB ID when passed an IMDB ID", type=str, metavar="IMDB_ID")
 
 args = parser.parse_args()
 
@@ -112,7 +110,6 @@ class TMDB:
 
 		# Create Dictionary of TV Data:
 		tvDict = json.loads(response.text)
-		print(tvDict.keys())
 
 		# 	Genre Data:
 		genresList = []
@@ -163,6 +160,10 @@ if args.movie != None:
 	if args.json:
 		print(TMDB.Movie(args.movie, j=True))
 	else:
+		# convert IMDB ID to TMDB ID if IMDB ID is given
+		if args.imdbid != None:
+			args.movie = TMDB.IMDB_CONVERTER(args.movie)
+
 		movieDict = TMDB.Movie(args.movie)
 		print(f'''
 {GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins
@@ -179,6 +180,8 @@ if args.television != None:
 	if args.json:
 		print(TMDB.TV(args.television, j=True))
 	else:
+		if args.imdbid != None:
+			args.television = TMDB.IMDB_CONVERTER(args.television)
 		tvDict = TMDB.TV(args.television)
 		print(f'''
 {GREEN}TITLE:{RS}{YELLOW} {tvDict['title']} {RS}
@@ -188,7 +191,7 @@ if args.television != None:
 {GREEN}DESCRIPTION:{RS} {tvDict['description']}
 ''')
 
-# CONVERTS IMDB ID TO TMDB ID [-imdb / --imdb-id]
-if args.imdbid != None:
-	tmdbID = TMDB.IMDB_CONVERTER(args.imdbid)
-	print(tmdbID)
+# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
+if args.imdbidconvert != None:
+	print(TMDB.IMDB_CONVERTER(args.imdbidconvert))
+
