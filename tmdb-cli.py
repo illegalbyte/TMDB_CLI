@@ -57,7 +57,7 @@ class TMDB:
 		initFile.close()
 
 	# Get Movie Details, TODO: allow multiple arguments and return all output.
-	def Movie(TMDB_ID, j=False) -> dict:
+	def Movie(TMDB_ID: str, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/movie/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
@@ -99,7 +99,7 @@ class TMDB:
 		return returnDict
 
 	# Returns a python dict of TV details, TODO: allow multiple arguments and return all output.
-	def TV(TMDB_ID, j=False) -> dict:
+	def TV(TMDB_ID: str, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/tv/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
