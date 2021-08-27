@@ -7,6 +7,7 @@ import pyinputplus as pyip
 from pprint import pprint
 from colorama import Fore, Back, Style
 import argparse
+import os
 
 # test ID: [tv, movie, imdbID]
 testID = ['113036', '676691', 'tt6856396']
@@ -22,6 +23,14 @@ YELLOW = Fore.YELLOW
 BLUE = Fore.BLUE
 GREEN = Fore.GREEN
 
+# For taking paths as input and validating them
+def dir_path(string):
+	if os.path.isfile(string):
+		return string
+	else:
+		raise NotADirectoryError(string)
+
+
 # Take the user arguments and Flags
 
 parser = argparse.ArgumentParser()
@@ -35,13 +44,19 @@ group.add_argument(
 group.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
 parser.add_argument(
+	"-i", "--input", help="use a list of line separated ID values as input", type=dir_path)
+parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
 group.add_argument(
 	"-idconvert", "--imdbidconvert", help="returns a TMDB ID when passed an IMDB ID", type=str, metavar="IMDB_ID")
 
 args = parser.parse_args()
 
-# Main class
+
+
+
+
+# TMDB class containing API interactions
 class TMDB:
 
 	# Ask for API KEY
