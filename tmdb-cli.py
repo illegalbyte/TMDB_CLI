@@ -9,8 +9,10 @@ from colorama import Fore, Back, Style
 import argparse
 import os
 
-# test ID: [tv, movie, imdbID]
-testID = ['113036', '676691', 'tt6856396']
+# TMDB IDs: [tv, movie, imdbID] (for testing purposes)
+TMDB_IDs = ['113036', '676691']
+# IMDB IDs: [tv, movie] (for testing purposes)
+IMDB_IDs = ['tt3230854', 'tt0109045',]
 
 # CONSTANTS:
 CWD = Path('./')
@@ -44,7 +46,7 @@ group.add_argument(
 group.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
 parser.add_argument(
-	"-i", "--input", help="use a list of line separated ID values as input", type=dir_path)
+	"-i", "--input", help="use a list of line separated ID values as input", type=dir_path, metavar='./ids.txt')
 parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
 group.add_argument(
@@ -179,39 +181,37 @@ else:
 
 # MOVIE OUTPUT [-m / --movie]
 if args.movie != None:
+	if args.imdbid:
+		args.movie = TMDB.IMDB_CONVERTER(args.movie)
+
 	if args.json:
 		print(TMDB.Movie(args.movie, j=True))
 	else:
 		# convert IMDB ID to TMDB ID if IMDB ID is given
-		if args.imdbid != None:
-			args.movie = TMDB.IMDB_CONVERTER(args.movie)
-
 		movieDict = TMDB.Movie(args.movie)
-		print(f'''
-{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins
-{GREEN}GENRES:{RS} {movieDict['genres']}
-{GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}
-{GREEN}DESCRIPTION:{RS} {movieDict['description']}
-''')
+		print(f"{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins")
+		print(f"{GREEN}GENRES:{RS} {movieDict['genres']}")
+		print(f"{GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}")
+		print(f"{GREEN}DESCRIPTION:{RS} {movieDict['description']}")
 		# appends link to trailer if available.
 		if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
 
 
 # TV OUTPUT [-tv / --television]
 if args.television != None:
+	if args.imdbid:
+		args.television = TMDB.IMDB_CONVERTER(args.television)
+
 	if args.json:
 		print(TMDB.TV(args.television, j=True))
 	else:
-		if args.imdbid != None:
-			args.television = TMDB.IMDB_CONVERTER(args.television)
 		tvDict = TMDB.TV(args.television)
-		print(f'''
-{GREEN}TITLE:{RS}{YELLOW} {tvDict['title']} {RS}
-{GREEN}GENRES:{RS} {tvDict['genres']}	
-{GREEN}EPISODE LENGTH:{RS} {tvDict['runtime']}mins	{GREEN}SEASONS:{RS} {tvDict['seasons']}
-{GREEN}RATING:{RS} {tvDict['rating']}/10 		{GREEN}RELEASED:{RS} {str(tvDict['release_date'])[2:-2]}
-{GREEN}DESCRIPTION:{RS} {tvDict['description']}
-''')
+		print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
+		print(f"{GREEN}GENRES: {RS} {tvDict['genres']}")
+		print(f"{GREEN}EPISODE LENGTH: {RS} {tvDict['runtime']}mins	{GREEN}SEASONS: {RS} {tvDict['seasons']}")
+		print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
+		print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
+
 
 # CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 if args.imdbidconvert != None:
