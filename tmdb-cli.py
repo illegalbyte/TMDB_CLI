@@ -46,7 +46,7 @@ group.add_argument(
 group.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
 parser.add_argument(
-	"-i", "--input", help="use a list of line separated ID values as input", type=dir_path, metavar='./ids.txt')
+	"-l", "--list", help="use a list of line separated ID values as input", action="store_true")
 parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
 group.add_argument(
@@ -183,7 +183,8 @@ else:
 if args.movie != None:
 	if args.imdbid:
 		args.movie = TMDB.IMDB_CONVERTER(args.movie)
-
+	if args.list:
+		pass  # TODO: add recursive file reading (must be compatible with -j flag)
 	if args.json:
 		print(TMDB.Movie(args.movie, j=True))
 	else:
@@ -201,7 +202,8 @@ if args.movie != None:
 if args.television != None:
 	if args.imdbid:
 		args.television = TMDB.IMDB_CONVERTER(args.television)
-
+	if args.list:
+		pass #TODO: add recursive file reading - must be compatible with -j flag
 	if args.json:
 		print(TMDB.TV(args.television, j=True))
 	else:
