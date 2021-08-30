@@ -14,13 +14,14 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers.web import JsonLexer
 from pygments.styles import get_style_by_name
 
-# TMDB IDs: [tv, movie, imdbID] (for testing purposes)
+# TMDB IDs: [tv, movie] (for testing purposes)
 TMDB_IDs = ['113036', '676691']
 # IMDB IDs: [tv, movie] (for testing purposes)
-IMDB_IDs = ['tt3230854', 'tt0109045',]
+IMDB_IDs = ['tt3230854', 'tt0109045']
 
 # CONSTANTS:
 CWD = Path('./')
+REQUEST_RATE_LIMIT_SECONDS = 1
 
 
 # COLOR SHORTCUTS FOR TERM OUTPUT STYLING EG f"{GREEN} THIS IS GREEN {RS} THIS IS NOT GREEN"
@@ -30,7 +31,7 @@ YELLOW = Fore.YELLOW
 BLUE = Fore.BLUE
 GREEN = Fore.GREEN
 
-# For taking paths as input and validating them
+# For taking filepaths as input and validating them
 def dir_path(string):
 	if os.path.isfile(string):
 		return string
@@ -41,43 +42,40 @@ def dir_path(string):
 def prettyJson(json_string):
 	json_string = json.loads(json_string)
 	formatted_json = json.dumps(json_string, indent=4)
-	colorful_json = highlight(formatted_json, JsonLexer(),
-	                          Terminal256Formatter(style=get_style_by_name('monokai')))
-	return colorful_json
+	if args.colour:
+		colorful_json = highlight(formatted_json, JsonLexer(), Terminal256Formatter(style=get_style_by_name('monokai')))
+		return colorful_json
+	else:
+		return str(formatted_json)
 
 
-# Take the user arguments and Flags
-
+# Take the user arguments and flags
 parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group() # makes sure users don't pass -tv and -m for example
+exclusiveArgs = parser.add_mutually_exclusive_group() # makes sure users don't pass -tv and -m for example
+listInputArgs = parser.add_argument_group()
 parser.add_argument(
 	"-j", "--json", help="return raw JSON output from the API", action="store_true")
 parser.add_argument(
-	"-k", "--key", help="add new API key for authorisation", action="store_true")
-group.add_argument(
+	"-k", "--key", help="authenticate with your API key", action="store_true")
+exclusiveArgs.add_argument(
 	"-m", "--movie", help="search for movie using themoviedb.org ID", type=str, metavar='TMDB_ID')
-group.add_argument(
+exclusiveArgs.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
-parser.add_argument(
+listInputArgs.add_argument(
 	"-l", "--list", help="use a list of line separated ID values as input (pass -c for JSON syntax highlighting and formatted output)", action="store_true")
+listInputArgs.add_argument(
+	"-c", "--colour", help="Colourful JSON output (don't use if output is being sent to a file)", action="store_true")
 parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
-group.add_argument(
+exclusiveArgs.add_argument(
 	"-idconvert", "--imdbidconvert", help="returns a TMDB ID when passed an IMDB ID", type=str, metavar="IMDB_ID")
-
 args = parser.parse_args()
-
 
 
 # Reads each line of file and returns a list
 def read_file_lines(filePath):
 	# Make sure the file exists
-	try:
-		f = open(filePath)
-	except FileNotFoundError:
-			print(f'File could not be found at {filePath} – make sure this is a valid path.')
-	finally:
-		f.close()
+	dir_path(filePath)
 	
 	# Open the file and return each line in a list
 	with open(filePath, 'r') as file:
@@ -211,13 +209,13 @@ if args.movie != None:
 	if args.imdbid:
 		args.movie = TMDB.IMDB_CONVERTER(args.movie)
 	if args.list:
-		id_list = read_file_lines(args.television)
+		id_list = read_file_lines(args.movie)
 		for id in id_list:
 			print(prettyJson(TMDB.movie(id, j=True)))
-			time.sleep(1)
+			time.sleep(REQUEST_RATE_LIMIT_SECONDS)
 
 	if args.json:
-		print(TMDB.Movie(args.movie, j=True))
+		print(prettyJson(TMDB.Movie(args.movie, j=True)))
 	else:
 		# convert IMDB ID to TMDB ID if IMDB ID is given
 		movieDict = TMDB.Movie(args.movie)
@@ -234,16 +232,16 @@ if args.television != None:
 	if args.imdbid:
 		args.television = TMDB.IMDB_CONVERTER(args.television)
 	
-	# For when a list is passed as input:
 	if args.list:
-
+		# reads each line of file and stores it in id_list
 		id_list = read_file_lines(args.television)
+		# for each line return the pretty json version of the file
 		for id in id_list:
 			print(prettyJson(TMDB.TV(id, j=True)))
-			time.sleep(1)
+			time.sleep(REQUEST_RATE_LIMIT_SECONDS)
 
-	if args.json:
-		print(TMDB.TV(args.television, j=True))
+	if args.json and not args.list:
+		print(prettyJson(TMDB.TV(args.television, j=True)))
 	elif args.list == None:
 		tvDict = TMDB.TV(args.television)
 		print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
