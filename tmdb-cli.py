@@ -9,6 +9,10 @@ from colorama import Fore, Back, Style
 import argparse
 import os
 import time
+from pygments import highlight
+from pygments.formatters.terminal256 import Terminal256Formatter
+from pygments.lexers.web import JsonLexer
+from pygments.styles import get_style_by_name
 
 # TMDB IDs: [tv, movie, imdbID] (for testing purposes)
 TMDB_IDs = ['113036', '676691']
@@ -33,6 +37,14 @@ def dir_path(string):
 	else:
 		raise NotADirectoryError(string)
 
+# for printing readable JSON (coloured)
+def prettyJson(json_string):
+	json_string = json.loads(json_string)
+	formatted_json = json.dumps(json_string, indent=4)
+	colorful_json = highlight(formatted_json, JsonLexer(),
+	                          Terminal256Formatter(style=get_style_by_name('monokai')))
+	return colorful_json
+
 
 # Take the user arguments and Flags
 
@@ -47,7 +59,7 @@ group.add_argument(
 group.add_argument(
     "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
 parser.add_argument(
-	"-l", "--list", help="use a list of line separated ID values as input", action="store_true")
+	"-l", "--list", help="use a list of line separated ID values as input (pass -c for JSON syntax highlighting and formatted output)", action="store_true")
 parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
 group.add_argument(
@@ -75,7 +87,6 @@ def read_file_lines(filePath):
 
 # TMDB class containing API interactions
 class TMDB:
-
 	# Ask for API KEY
 	def InitialiseKey():
 		while True:
@@ -200,7 +211,11 @@ if args.movie != None:
 	if args.imdbid:
 		args.movie = TMDB.IMDB_CONVERTER(args.movie)
 	if args.list:
-		pass  # TODO: add recursive file reading (must be compatible with -j flag)
+		id_list = read_file_lines(args.television)
+		for id in id_list:
+			print(prettyJson(TMDB.movie(id, j=True)))
+			time.sleep(1)
+
 	if args.json:
 		print(TMDB.Movie(args.movie, j=True))
 	else:
@@ -223,9 +238,8 @@ if args.television != None:
 	if args.list:
 
 		id_list = read_file_lines(args.television)
-
 		for id in id_list:
-			print(TMDB.TV(id, j=True))
+			print(prettyJson(TMDB.TV(id, j=True)))
 			time.sleep(1)
 
 	if args.json:
