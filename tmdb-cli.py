@@ -8,6 +8,7 @@ from pprint import pprint
 from colorama import Fore, Back, Style
 import argparse
 import os
+import time
 
 # TMDB IDs: [tv, movie, imdbID] (for testing purposes)
 TMDB_IDs = ['113036', '676691']
@@ -56,6 +57,20 @@ args = parser.parse_args()
 
 
 
+# Reads each line of file and returns a list
+def read_file_lines(filePath):
+	# Make sure the file exists
+	try:
+		f = open(filePath)
+	except FileNotFoundError:
+			print(f'File could not be found at {filePath} – make sure this is a valid path.')
+	finally:
+		f.close()
+	
+	# Open the file and return each line in a list
+	with open(filePath, 'r') as file:
+		lines = file.readlines()
+	return lines
 
 
 # TMDB class containing API interactions
@@ -134,6 +149,7 @@ class TMDB:
 			genresList.append(genre["name"])
 
 		# TODO: add all languages rather than the primary spoken
+		# BUG: if there isn't an entry, it fails ungracefully
 		title = tvDict['name']
 		description = tvDict['overview']
 		genres = ' | '.join(genresList[:])
@@ -202,11 +218,19 @@ if args.movie != None:
 if args.television != None:
 	if args.imdbid:
 		args.television = TMDB.IMDB_CONVERTER(args.television)
+	
+	# For when a list is passed as input:
 	if args.list:
-		pass #TODO: add recursive file reading - must be compatible with -j flag
+
+		id_list = read_file_lines(args.television)
+
+		for id in id_list:
+			print(TMDB.TV(id, j=True))
+			time.sleep(1)
+
 	if args.json:
 		print(TMDB.TV(args.television, j=True))
-	else:
+	elif args.list == None:
 		tvDict = TMDB.TV(args.television)
 		print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
 		print(f"{GREEN}GENRES: {RS} {tvDict['genres']}")
