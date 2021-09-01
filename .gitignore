@@ -6,3 +6,11 @@ init.py
 __pycache__/init.cpython-39.pyc
 tv_output.json
 .DS_Store
+dist/tmdbl_cli-illegalbyte-0.0.1.tar.gz
+dist/tmdbl_cli_illegalbyte-0.0.1-py3-none-any.whl
+pyproject.toml
+setup.cfg
+src/tmdbl_cli_illegalbyte.egg-info/dependency_links.txt
+src/tmdbl_cli_illegalbyte.egg-info/PKG-INFO
+src/tmdbl_cli_illegalbyte.egg-info/SOURCES.txt
+src/tmdbl_cli_illegalbyte.egg-info/top_level.txt
