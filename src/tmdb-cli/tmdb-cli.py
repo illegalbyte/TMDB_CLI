@@ -4,8 +4,7 @@ from pathlib import Path
 import json
 import requests
 import pyinputplus as pyip
-from pprint import pprint
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 import argparse
 import os
 import time
@@ -196,62 +195,65 @@ class TMDB:
 	# TODO: Add determine type (Movie or Tv show) function
 
 
-# Initialise API KEY:
-#		 run when 'key' is passed or there is no init file found
-if (args.key) or not Path.exists(Path('./init.py')):
-	TMDB.InitialiseKey()
-else:
-	from init import API_KEY
+if __name__ == "__main__":
 
 
-# MOVIE OUTPUT [-m / --movie]
-if args.movie != None:
-	if args.imdbid:
-		args.movie = TMDB.IMDB_CONVERTER(args.movie)
-	if args.list:
-		id_list = read_file_lines(args.movie)
-		for id in id_list:
-			print(prettyJson(TMDB.movie(id, j=True)))
-			time.sleep(REQUEST_RATE_LIMIT_SECONDS)
-
-	if args.json:
-		print(prettyJson(TMDB.Movie(args.movie, j=True)))
+	# Initialise API KEY:
+	#		 run when 'key' is passed or there is no init file found
+	if (args.key) or not Path.exists(Path('./init.py')):
+		TMDB.InitialiseKey()
 	else:
-		# convert IMDB ID to TMDB ID if IMDB ID is given
-		movieDict = TMDB.Movie(args.movie)
-		print(f"{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins")
-		print(f"{GREEN}GENRES:{RS} {movieDict['genres']}")
-		print(f"{GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}")
-		print(f"{GREEN}DESCRIPTION:{RS} {movieDict['description']}")
-		# appends link to trailer if available.
-		if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
+		from init import API_KEY
 
 
-# TV OUTPUT [-tv / --television]
-if args.television != None:
-	if args.imdbid:
-		args.television = TMDB.IMDB_CONVERTER(args.television)
-	
-	if args.list:
-		# reads each line of file and stores it in id_list
-		id_list = read_file_lines(args.television)
-		# for each line return the pretty json version of the file
-		for id in id_list:
-			print(prettyJson(TMDB.TV(id, j=True)))
-			time.sleep(REQUEST_RATE_LIMIT_SECONDS)
+	# MOVIE OUTPUT [-m / --movie]
+	if args.movie != None:
+		if args.imdbid:
+			args.movie = TMDB.IMDB_CONVERTER(args.movie)
+		if args.list:
+			id_list = read_file_lines(args.movie)
+			for id in id_list:
+				print(prettyJson(TMDB.movie(id, j=True)))
+				time.sleep(REQUEST_RATE_LIMIT_SECONDS)
 
-	if args.json and not args.list:
-		print(prettyJson(TMDB.TV(args.television, j=True)))
-	elif args.list == None:
-		tvDict = TMDB.TV(args.television)
-		print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
-		print(f"{GREEN}GENRES: {RS} {tvDict['genres']}")
-		print(f"{GREEN}EPISODE LENGTH: {RS} {tvDict['runtime']}mins	{GREEN}SEASONS: {RS} {tvDict['seasons']}")
-		print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
-		print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
+		if args.json:
+			print(prettyJson(TMDB.Movie(args.movie, j=True)))
+		else:
+			# convert IMDB ID to TMDB ID if IMDB ID is given
+			movieDict = TMDB.Movie(args.movie)
+			print(f"{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins")
+			print(f"{GREEN}GENRES:{RS} {movieDict['genres']}")
+			print(f"{GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}")
+			print(f"{GREEN}DESCRIPTION:{RS} {movieDict['description']}")
+			# appends link to trailer if available.
+			if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
 
 
-# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
-if args.imdbidconvert != None:
-	print(TMDB.IMDB_CONVERTER(args.imdbidconvert))
+	# TV OUTPUT [-tv / --television]
+	if args.television != None:
+		if args.imdbid:
+			args.television = TMDB.IMDB_CONVERTER(args.television)
+		
+		if args.list:
+			# reads each line of file and stores it in id_list
+			id_list = read_file_lines(args.television)
+			# for each line return the pretty json version of the file
+			for id in id_list:
+				print(prettyJson(TMDB.TV(id, j=True)))
+				time.sleep(REQUEST_RATE_LIMIT_SECONDS)
+
+		if args.json and not args.list:
+			print(prettyJson(TMDB.TV(args.television, j=True)))
+		elif args.list == None:
+			tvDict = TMDB.TV(args.television)
+			print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
+			print(f"{GREEN}GENRES: {RS} {tvDict['genres']}")
+			print(f"{GREEN}EPISODE LENGTH: {RS} {tvDict['runtime']}mins	{GREEN}SEASONS: {RS} {tvDict['seasons']}")
+			print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
+			print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
+
+
+	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
+	if args.imdbidconvert != None:
+		print(TMDB.IMDB_CONVERTER(args.imdbidconvert))
 
