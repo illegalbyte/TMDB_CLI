@@ -98,26 +98,20 @@ class TMDB:
 		initFile.write(f"API_KEY='{apiKeyInput}'")
 		initFile.close()
 
-
 	# Get Movie Details, TODO: allow multiple arguments and return all output.
 	def Movie(TMDB_ID: str, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/movie/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
-
 		# Return JSON if JSON parameter is passed
 		if j == True:
 			return response.text
-
 		# Create Dictionary of Movie Data:
 		movieDict = json.loads(response.text)
-
-
 		# 	Genre Data:
 		genresList = []
 		for genre in movieDict["genres"]:
 			genresList.append(genre["name"])
-
 		# 	Title: 
 		title = movieDict['title']
 		# 	Ovierview / Description
@@ -134,32 +128,26 @@ class TMDB:
 		trailer = movieDict['video']
 		# 	Runtime in minutes
 		runtime = movieDict['runtime']
-
 		returnDict = {  'title': title, 'description': description, 'genres': genres,
 						'release_date': release_date, 'languages': languages, 'rating': rating, 
 						'trailer': trailer, 'runtime': runtime
 						}
 		return returnDict
 
-
 	# Returns a python dict of TV details, TODO: allow multiple arguments and return all output.
 	def TV(TMDB_ID: str, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/tv/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
 		response.raise_for_status()
-
 		# Return JSON if JSON parameter is passed
 		if j == True:
 			return response.text
-
 		# Create Dictionary of TV Data:
 		tvDict = json.loads(response.text)
-
 		# 	Genre Data:
 		genresList = []
 		for genre in tvDict["genres"]:
 			genresList.append(genre["name"])
-
 		# TODO: add all languages rather than the primary spoken
 		# BUG: if there isn't an entry, it fails ungracefully
 		title = tvDict['name']
@@ -170,7 +158,6 @@ class TMDB:
 		rating = tvDict['vote_average']
 		runtime = tvDict['episode_run_time']
 		seasoncount = tvDict['number_of_seasons']
-
 		returnDict = {'title': title, 'description': description, 'genres': genres,
                     'release_date': release_date, 'languages': languages, 'rating': rating,
                     'runtime': runtime, 'seasons': seasoncount
@@ -182,25 +169,20 @@ class TMDB:
 		url = f'https://api.themoviedb.org/3/find/{IMDB_ID}?api_key={API_KEY}&language=en-US&external_source=imdb_id'
 		response = requests.get(url)
 		response.raise_for_status()
-
 		findResponseDictionary = json.loads(response.text)
-
 		if findResponseDictionary['movie_results'] != []:
 			return findResponseDictionary['movie_results'][0]["id"]
 		elif findResponseDictionary['tv_results'] != []:
 			return findResponseDictionary['tv_results'][0]["id"]
-
+	
 	# TODO: Add search for movies / TV shows in an interactive menu using pyinputplus menus
-
 	# TODO: Add justwatch providers search: https://developers.themoviedb.org/3/watch-providers/get-available-regions
 		# localised to region 
 			# eg translate country name to country code 
-
 	# TODO: Add determine type (Movie or Tv show) function
 
 
 if __name__ == "__main__":
-
 
 	# Initialise API KEY:
 	#		 run when 'key' is passed or there is no init file found
@@ -208,7 +190,6 @@ if __name__ == "__main__":
 		TMDB.InitialiseKey()
 	else:
 		from init import API_KEY
-
 
 	# MOVIE OUTPUT [-m / --movie]
 	if args.movie != None:
@@ -219,7 +200,6 @@ if __name__ == "__main__":
 			for id in id_list:
 				print(prettyJson(TMDB.movie(id, j=True)))
 				time.sleep(REQUEST_RATE_LIMIT_SECONDS)
-
 		if args.json:
 			print(prettyJson(TMDB.Movie(args.movie, j=True)))
 		else:
@@ -231,7 +211,6 @@ if __name__ == "__main__":
 			print(f"{GREEN}DESCRIPTION:{RS} {movieDict['description']}")
 			# appends link to trailer if available.
 			if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
-
 
 	# TV OUTPUT [-tv / --television]
 	if args.television != None:
@@ -245,7 +224,6 @@ if __name__ == "__main__":
 			for id in id_list:
 				print(prettyJson(TMDB.TV(id, j=True)))
 				time.sleep(REQUEST_RATE_LIMIT_SECONDS)
-
 		if args.json and not args.list:
 			print(prettyJson(TMDB.TV(args.television, j=True)))
 		elif args.list == None:
@@ -255,7 +233,6 @@ if __name__ == "__main__":
 			print(f"{GREEN}EPISODE LENGTH: {RS} {tvDict['runtime']}mins	{GREEN}SEASONS: {RS} {tvDict['seasons']}")
 			print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
 			print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
-
 
 	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 	if args.imdbidconvert != None:
