@@ -12,6 +12,7 @@ from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers.web import JsonLexer
 from pygments.styles import get_style_by_name
+from timeit import timeit
 
 # TMDB IDs: [tv, movie] (for testing purposes)
 TMDB_IDs = ['113036', '676691']
@@ -96,7 +97,7 @@ class TMDB:
 		initFile.write(f"API_KEY='{apiKeyInput}'")
 		initFile.close()
 
-	# Get Movie Details, TODO: allow multiple arguments and return all output.
+	# Get Movie Details
 	def Movie(TMDB_ID: str, j=False) -> dict:
 		url = f'https://api.themoviedb.org/3/movie/{TMDB_ID}?api_key={API_KEY}&language=en-US'
 		response = requests.get(url)
@@ -118,11 +119,11 @@ class TMDB:
 		genres = ' | '.join(genresList[:])
 		# Release Date
 		release_date = movieDict['release_date']
-		# Languages # TODO: fix languages to accept more than one input
+		# Languages
 		languages = [] 
 		for language in movieDict['spoken_languages']:
 			languages.append(language['english_name'])
-		# rating
+		# Rating
 		rating = movieDict['vote_average']
 		# Trailer
 		trailer = movieDict['video']
@@ -234,7 +235,6 @@ if __name__ == "__main__":
 			print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
 			print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
 			print(f"{GREEN}Spoken Language(s):{RS} {' | '.join(tvDict['languages'])}")
-
 
 	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 	if args.imdbidconvert != None:
