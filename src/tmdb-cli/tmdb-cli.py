@@ -19,7 +19,6 @@ TMDB_IDs = ['113036', '676691']
 IMDB_IDs = ['tt3230854', 'tt0109045']
 
 # CONSTANTS:
-CWD = Path('./')
 REQUEST_RATE_LIMIT_SECONDS = 1
 
 # COLOR SHORTCUTS FOR TERM OUTPUT STYLING EG f"{GREEN} THIS IS GREEN {RS} THIS IS NOT GREEN"
@@ -85,7 +84,6 @@ def read_file_lines(filePath):
 # TMDB class containing API interactions
 class TMDB:
 
-
 	# Ask for API KEY
 	def InitialiseKey():
 		while True:
@@ -108,30 +106,31 @@ class TMDB:
 			return response.text
 		# Create Dictionary of Movie Data:
 		movieDict = json.loads(response.text)
-		# 	Genre Data:
+		# Genre Data:
 		genresList = []
 		for genre in movieDict["genres"]:
 			genresList.append(genre["name"])
-		# 	Title: 
+		# Title: 
 		title = movieDict['title']
-		# 	Ovierview / Description
+		# Ovierview / Description
 		description = movieDict['overview']
 		# Genres
 		genres = ' | '.join(genresList[:])
-		# 	Release Date
+		# Release Date
 		release_date = movieDict['release_date']
-		# 	Languages # TODO: fix languages to accept more than one input
-		languages = movieDict['spoken_languages'][0]['english_name']
-		# 	rating
+		# Languages # TODO: fix languages to accept more than one input
+		languages = [] 
+		for language in movieDict['spoken_languages']:
+			languages.append(language['english_name'])
+		# rating
 		rating = movieDict['vote_average']
-		# 	Trailer
+		# Trailer
 		trailer = movieDict['video']
-		# 	Runtime in minutes
+		# Runtime in minutes
 		runtime = movieDict['runtime']
-		returnDict = {  'title': title, 'description': description, 'genres': genres,
+		returnDict = {'title':title, 'description': description, 'genres': genres,
 						'release_date': release_date, 'languages': languages, 'rating': rating, 
-						'trailer': trailer, 'runtime': runtime
-						}
+						'trailer':trailer, 'runtime':runtime}
 		return returnDict
 
 	# Returns a python dict of TV details, TODO: allow multiple arguments and return all output.
@@ -148,20 +147,20 @@ class TMDB:
 		genresList = []
 		for genre in tvDict["genres"]:
 			genresList.append(genre["name"])
-		# TODO: add all languages rather than the primary spoken
 		# BUG: if there isn't an entry, it fails ungracefully
 		title = tvDict['name']
 		description = tvDict['overview']
 		genres = ' | '.join(genresList[:])
 		release_date = {tvDict['first_air_date']}
-		languages = tvDict['spoken_languages'][0]['english_name']
+		languages = []
+		for language in tvDict['spoken_languages']:
+			languages.append(language['english_name'])
 		rating = tvDict['vote_average']
 		runtime = tvDict['episode_run_time']
 		seasoncount = tvDict['number_of_seasons']
 		returnDict = {'title': title, 'description': description, 'genres': genres,
                     'release_date': release_date, 'languages': languages, 'rating': rating,
-                    'runtime': runtime, 'seasons': seasoncount
-                }
+                    'runtime': runtime, 'seasons': seasoncount}
 		return returnDict
 
 	# Converts an IMDB ID to a TMDB ID, TODO: automatically convert IMDB IDs to TMDB
@@ -184,14 +183,13 @@ class TMDB:
 
 if __name__ == "__main__":
 
-	# Initialise API KEY:
-	#		 run when 'key' is passed or there is no init file found
+	# Initialise API KEY: run when 'key' is passed or there is no init file found
 	if (args.key) or not Path.exists(Path('./init.py')):
 		TMDB.InitialiseKey()
 	else:
 		from init import API_KEY
 
-	# MOVIE OUTPUT [-m / --movie]
+	# MOVIE OUTPUT [Args: -m / --movie]
 	if args.movie != None:
 		if args.imdbid:
 			args.movie = TMDB.IMDB_CONVERTER(args.movie)
@@ -205,14 +203,16 @@ if __name__ == "__main__":
 		else:
 			# convert IMDB ID to TMDB ID if IMDB ID is given
 			movieDict = TMDB.Movie(args.movie)
-			print(f"{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']}mins")
+			print(f"{GREEN}TITLE:{RS}{YELLOW} {movieDict['title']} {RS}	{movieDict['runtime']} mins")
 			print(f"{GREEN}GENRES:{RS} {movieDict['genres']}")
 			print(f"{GREEN}RATING:{RS} {movieDict['rating']}/10 		{GREEN}RELEASED:{RS} {movieDict['release_date']}")
 			print(f"{GREEN}DESCRIPTION:{RS} {movieDict['description']}")
+			print(f"{GREEN}Spoken Language(s):{RS} {' | '.join(movieDict['languages'])}")
+
 			# appends link to trailer if available.
 			if movieDict['trailer']: print(f'{GREEN}TRAILER:{RS} {movieDict["trailer"]}') 
 
-	# TV OUTPUT [-tv / --television]
+	# TV OUTPUT [Args: -tv / --television]
 	if args.television != None:
 		if args.imdbid:
 			args.television = TMDB.IMDB_CONVERTER(args.television)
@@ -226,13 +226,15 @@ if __name__ == "__main__":
 				time.sleep(REQUEST_RATE_LIMIT_SECONDS)
 		if args.json and not args.list:
 			print(prettyJson(TMDB.TV(args.television, j=True)))
-		elif args.list == None:
+		else:
 			tvDict = TMDB.TV(args.television)
 			print(f"{GREEN}TITLE: {RS}{YELLOW} {tvDict['title']} {RS}")
 			print(f"{GREEN}GENRES: {RS} {tvDict['genres']}")
 			print(f"{GREEN}EPISODE LENGTH: {RS} {tvDict['runtime']}mins	{GREEN}SEASONS: {RS} {tvDict['seasons']}")
 			print(f"{GREEN}RATING: {RS} {tvDict['rating']}/10 		{GREEN}RELEASED: {RS} {str(tvDict['release_date'])[2:-2]}")
 			print(f"{GREEN}DESCRIPTION:{RS} {tvDict['description']}")
+			print(f"{GREEN}Spoken Language(s):{RS} {' | '.join(tvDict['languages'])}")
+
 
 	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 	if args.imdbidconvert != None:
