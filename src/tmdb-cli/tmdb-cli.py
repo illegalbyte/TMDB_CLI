@@ -22,7 +22,6 @@ IMDB_IDs = ['tt3230854', 'tt0109045']
 CWD = Path('./')
 REQUEST_RATE_LIMIT_SECONDS = 1
 
-
 # COLOR SHORTCUTS FOR TERM OUTPUT STYLING EG f"{GREEN} THIS IS GREEN {RS} THIS IS NOT GREEN"
 RS = Style.RESET_ALL
 RED = Fore.RED
@@ -36,6 +35,7 @@ def dir_path(string):
 		return string
 	else:
 		raise NotADirectoryError(string)
+
 
 # for printing readable JSON (coloured)
 def prettyJson(json_string):
@@ -84,6 +84,8 @@ def read_file_lines(filePath):
 
 # TMDB class containing API interactions
 class TMDB:
+
+
 	# Ask for API KEY
 	def InitialiseKey():
 		while True:
@@ -95,6 +97,7 @@ class TMDB:
 		initFile = open('init.py', 'w')
 		initFile.write(f"API_KEY='{apiKeyInput}'")
 		initFile.close()
+
 
 	# Get Movie Details, TODO: allow multiple arguments and return all output.
 	def Movie(TMDB_ID: str, j=False) -> dict:
@@ -137,6 +140,7 @@ class TMDB:
 						'trailer': trailer, 'runtime': runtime
 						}
 		return returnDict
+
 
 	# Returns a python dict of TV details, TODO: allow multiple arguments and return all output.
 	def TV(TMDB_ID: str, j=False) -> dict:
@@ -256,4 +260,3 @@ if __name__ == "__main__":
 	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 	if args.imdbidconvert != None:
 		print(TMDB.IMDB_CONVERTER(args.imdbidconvert))
-
