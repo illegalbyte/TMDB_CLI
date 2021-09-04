@@ -12,12 +12,49 @@ from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers.web import JsonLexer
 from pygments.styles import get_style_by_name
-from timeit import timeit
+from pprint import pprint
 
 # TMDB IDs: [tv, movie] (for testing purposes)
 TMDB_IDs = ['113036', '676691']
 # IMDB IDs: [tv, movie] (for testing purposes)
 IMDB_IDs = ['tt3230854', 'tt0109045']
+# JSON of TMDB / JUSTWATCH COUNTRY CODES:  [REQ = f"https://api.themoviedb.org/3/watch/providers/regions?api_key={API_KEY}&language=en-US"]
+COUNTRY_CODES = json.loads('''{"results":[{"iso_3166_1":"AR","english_name":"Argentina","native_name":"Argentina"},
+							{"iso_3166_1":"AT","english_name":"Austria","native_name":"Austria"},
+							{"iso_3166_1":"AU","english_name":"Australia","native_name":"Australia"},
+							{"iso_3166_1":"BE","english_name":"Belgium","native_name":"Belgium"},
+							{"iso_3166_1":"BG","english_name":"Bulgaria","native_name":"Bulgaria"},
+							{"iso_3166_1":"BR","english_name":"Brazil","native_name":"Brazil"},
+							{"iso_3166_1":"CA","english_name":"Canada","native_name":"Canada"},
+							{"iso_3166_1":"CH","english_name":"Switzerland","native_name":"Switzerland"},
+							{"iso_3166_1":"CZ","english_name":"Czech Republic","native_name":"Czech Republic"},
+							{"iso_3166_1":"DE","english_name":"Germany","native_name":"Germany"},
+							{"iso_3166_1":"DK","english_name":"Denmark","native_name":"Denmark"},
+							{"iso_3166_1":"EE","english_name":"Estonia","native_name":"Estonia"},
+							{"iso_3166_1":"ES","english_name":"Spain","native_name":"Spain"},
+							{"iso_3166_1":"FI","english_name":"Finland","native_name":"Finland"},
+							{"iso_3166_1":"FR","english_name":"France","native_name":"France"},
+							{"iso_3166_1":"GB","english_name":"United Kingdom","native_name":"United Kingdom"},
+							{"iso_3166_1":"HU","english_name":"Hungary","native_name":"Hungary"},
+							{"iso_3166_1":"ID","english_name":"Indonesia","native_name":"Indonesia"},
+							{"iso_3166_1":"IE","english_name":"Ireland","native_name":"Ireland"},
+							{"iso_3166_1":"IN","english_name":"India","native_name":"India"},
+							{"iso_3166_1":"IT","english_name":"Italy","native_name":"Italy"},
+							{"iso_3166_1":"JP","english_name":"Japan","native_name":"Japan"},
+							{"iso_3166_1":"KR","english_name":"South Korea","native_name":"South Korea"},
+							{"iso_3166_1":"LT","english_name":"Lithuania","native_name":"Lithuania"},
+							{"iso_3166_1":"MX","english_name":"Mexico","native_name":"Mexico"},
+							{"iso_3166_1":"NL","english_name":"Netherlands","native_name":"Netherlands"},
+							{"iso_3166_1":"NO","english_name":"Norway","native_name":"Norway"},
+							{"iso_3166_1":"NZ","english_name":"New Zealand","native_name":"New Zealand"},
+							{"iso_3166_1":"PH","english_name":"Philippines","native_name":"Philippines"},
+							{"iso_3166_1":"PL","english_name":"Poland","native_name":"Poland"},
+							{"iso_3166_1":"PT","english_name":"Portugal","native_name":"Portugal"},
+							{"iso_3166_1":"RU","english_name":"Russia","native_name":"Russia"},
+							{"iso_3166_1":"SE","english_name":"Sweden","native_name":"Sweden"},
+							{"iso_3166_1":"TR","english_name":"Turkey","native_name":"Turkey"},
+							{"iso_3166_1":"US","english_name":"United States of America","native_name":"United States"},
+							{"iso_3166_1":"ZA","english_name":"South Africa","native_name":"South Africa"}]}''')
 
 # CONSTANTS:
 REQUEST_RATE_LIMIT_SECONDS = 1
@@ -52,14 +89,15 @@ def prettyJson(json_string):
 parser = argparse.ArgumentParser()
 exclusiveArgs = parser.add_mutually_exclusive_group() # makes sure users don't pass -tv and -m for example
 listInputArgs = parser.add_argument_group()
+justwatchArgs = parser.add_argument_group()
 parser.add_argument(
 	"-j", "--json", help="return raw JSON output from the API", action="store_true")
 parser.add_argument(
 	"-k", "--key", help="authenticate with your API key", action="store_true")
 exclusiveArgs.add_argument(
-	"-m", "--movie", help="search for movie using themoviedb.org ID", type=str, metavar='TMDB_ID')
+	"-m", "--movie", help="search for movie using themoviedb.org ID", type=str, metavar='<TMDB_ID>')
 exclusiveArgs.add_argument(
-    "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='TMDB_ID')
+    "-tv", "--television", help="search for TV show using themoviedb.org ID", type=str, metavar='<TMDB_ID>')
 listInputArgs.add_argument(
 	"-l", "--list", help="use a list of line separated ID values as input (pass -c for JSON syntax highlighting and formatted output)", action="store_true")
 listInputArgs.add_argument(
@@ -67,7 +105,13 @@ listInputArgs.add_argument(
 parser.add_argument(
 	"-imdb", "--imdbid", help="pass an IMDB ID instead of a themoviedb.org ID", action="store_true")
 exclusiveArgs.add_argument(
-	"-idconvert", "--imdbidconvert", help="returns a TMDB ID when passed an IMDB ID", type=str, metavar="IMDB_ID")
+	"-idconvert", "--imdbidconvert", help="returns a TMDB ID when passed an IMDB ID", type=str, metavar="<IMDB_ID>")
+justwatchArgs.add_argument(
+	"-mw", "--moviewatch", help="Find which streaming platforms a movie is available (specify country using -loc)", type=str, metavar="<TMDB_ID>")
+justwatchArgs.add_argument(
+    "-tvw", "--tvwatch", help="Find which streaming platforms a TV show is available (specify country using -loc)", type=str, metavar="<TMDB_ID>")
+justwatchArgs.add_argument(
+	"-loc", "--locale", help="Specify which country's streaming services you want to search (default: 'Australia')", metavar="<COUNTRY>")
 args = parser.parse_args()
 
 
@@ -88,7 +132,7 @@ class TMDB:
 	# Ask for API KEY
 	def InitialiseKey():
 		while True:
-			apiKeyInput = pyip.inputStr("Enter your API key from themoviedb.org:\n", )
+			apiKeyInput = pyip.inputStr("Enter your API key from themoviedb.org:n", )
 			if (requests.get(f'https://api.themoviedb.org/3/movie/{100}?api_key={apiKeyInput}&language=en-US').status_code == requests.codes.ok):
 				print('Awesome, your key worked and has been saved. Run \'tmdb -h\' if you need help getting started.')
 				break
@@ -175,11 +219,27 @@ class TMDB:
 		elif findResponseDictionary['tv_results'] != []:
 			return findResponseDictionary['tv_results'][0]["id"]
 	
+
 	# TODO: Add search for movies / TV shows in an interactive menu using pyinputplus menus
+	
 	# TODO: Add justwatch providers search: https://developers.themoviedb.org/3/watch-providers/get-available-regions
 		# localised to region 
 			# eg translate country name to country code 
-	# TODO: Add determine type (Movie or Tv show) function
+	
+	def justwatch(TMDB_ID: str, movie=False, tv=False, country='AU') -> dict:
+		if movie == True:
+			url = f'https://api.themoviedb.org/3/movie/{TMDB_ID}/watch/providers?api_key={API_KEY}'
+			response = requests.get(url)
+			response.raise_for_status()
+			providers_dict = json.loads(response.text)
+			pprint(providers_dict)
+		elif tv == True:
+			url = f'https://api.themoviedb.org/3/tv/{TMDB_ID}/watch/providers?api_key={API_KEY}'
+			response = requests.get(url)
+			response.raise_for_status()
+			providers_dict = json.loads(response.text)
+			pprint(providers_dict)
+
 
 
 if __name__ == "__main__":
@@ -239,3 +299,7 @@ if __name__ == "__main__":
 	# CONVERTS IMDB ID TO TMDB ID [-idconvert / --imdbidconvert]
 	if args.imdbidconvert != None:
 		print(TMDB.IMDB_CONVERTER(args.imdbidconvert))
+
+	# GETS THE AVAILABLE STREAMING SERVICES FOR A SPECIFIED COUNTRY: 
+	if args.tvwatch or args.moviewatch:
+		TMDB.justwatch(args.moviewatch,movie=True)
